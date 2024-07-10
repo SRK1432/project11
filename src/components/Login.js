@@ -1,72 +1,87 @@
 import React, { useState } from "react";
-import "./Login.css";
-const Login=()=>{
+import './Login.css';
+import { useNavigate } from "react-router-dom";
+
+const Login = () => {
+    const navigate = useNavigate();
     const [email, setEmail] = useState('');
-    const [password, setpassword] = useState('');
-    const [confPassword, setConfPassword] = useState('')
-    const [user, setUser] = useState([]);
+    const [password, setPassword] = useState('');
+    const [error, setError] = useState(null);
+    const [loading, setLoading] = useState(false);
 
-    
-    const submitHandler=(event)=>{
+    const loginSubmitHandler = (event) => {
         event.preventDefault();
-        const user = {email,password};
-        
-        
-        if(email==0 || password==0 || confPassword==0){
-            alert('Please enter all credentials')
-        }else if(password !== confPassword){
-            alert('password and Confirm Password must be same')
-        }
-        else{
-            fetch('https://react-http-a0270-default-rtdb.firebaseio.com/LoginData.json',{
-                method : 'POST',
-                body : JSON.stringify(user),
-                headers:{
-                    'Content-Type' : 'application/json'
-                }
-            })
-            .then((response)=>response.json())
-            .then((data)=>{
-                setUser((prevUser)=>[...prevUser,user])
-            })
-            .catch((error)=>{
-                console.log(error);
-            })
+        setError(null);
+        setLoading(true);
 
-            console.log('Login Successfully');
-            setEmail('');
-            setpassword('');
-            setConfPassword('');
+        if (email === '' || password === '') {
+            setError('Please enter all credentials');
+            setLoading(false);
+            return;
         }
-    }
-    return(
+
+        fetch('https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=AIzaSyBWzmP1mDV0IYFqZ9kSV67TmRB3RoqdMgE', {
+            method: 'POST',
+            body: JSON.stringify({
+                email: email,
+                password: password,
+                returnSecureToken: true,
+            }),
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        })
+        .then((response) => {
+            if (!response.ok) {
+                return response.json().then((data) => {
+                    let errorMessage = 'Authentication failed!';
+                    if (data && data.error && data.error.message) {
+                        errorMessage = data.error.message;
+                    }
+                    throw new Error(errorMessage);
+                });
+            }
+            return response.json();
+        })
+        .then((data) => {
+            console.log('Logged in successfully:', data);
+            setLoading(false);
+            navigate('/welcome');
+        })
+        .catch((error) => {
+            setError(error.message);
+            setLoading(false);
+        });
+    };
+
+    return (
         <>
-        <form onSubmit={submitHandler}>
-            <h1>Sign Up</h1>
-            <label htmlFor="email">Email:</label>
-            <input type="text"
-             id="email" 
-             value={email} 
-             placeholder="Email"
-             onChange={((e)=>setEmail(e.target.value))} />
-
-            <label htmlFor="password">Password</label>
-            <input type="password"
-             id="password" 
-             value={password} 
-             placeholder="Password"
-             onChange={((e)=>setpassword(e.target.value))}/>
-
-            <label htmlFor="password">Confirm Password</label>
-            <input type="passwrod"
-             id="confPassword" 
-             value={confPassword} 
-             placeholder="Confirm Password"
-             onChange={((e)=>setConfPassword(e.target.value))}/>
-
-            <button type="submit">Sign Up</button>
-        </form>
+            <form onSubmit={loginSubmitHandler}>
+                <h1>Login</h1>
+                {error && <p className="error">{error}</p>}
+                <label htmlFor="email">Email:</label>
+                <input
+                    type="email"
+                    id="email"
+                    placeholder="Email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                />
+                <label htmlFor="password">Password:</label>
+                <input
+                    type="password"
+                    id="password"
+                    placeholder="Password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                />
+                <button type="submit" disabled={loading}>
+                    {loading ? 'Logging in...' : 'Login'}
+                </button>
+                <button type="button" variant="link">Forgot Password</button>
+            </form>
         </>
-    )
-}
+    );
+};
+
 export default Login;
