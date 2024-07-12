@@ -61,6 +61,8 @@ const Login = () => {
       <button type="submit" disabled={loading}>
         {loading ? 'Logging in...' : 'Login'}
       </button>
+      <button type="button" onClick={() => navigate('/forgot-password')}>Forgot Password</button>
+
     </form>
   );
 };
