@@ -1,4 +1,4 @@
-// WelcomePage.js
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
@@ -70,6 +70,10 @@ const WelcomePage = () => {
         setError(error.message);
       });
   };
+  const logoutHandler = () => {
+    localStorage.removeItem('idToken');
+    navigate('/login');
+  };
 
   return (
     <div>
@@ -83,6 +87,7 @@ const WelcomePage = () => {
               {verificationSent && <p>A verification email has been sent to your email address. Please check your inbox.</p>}
             </>
           )}
+          <button onClick={logoutHandler}>Logout</button>
         </div>
       </nav>
       {error && <p className="error">{error}</p>}
