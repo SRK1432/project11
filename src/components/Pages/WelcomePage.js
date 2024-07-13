@@ -1,6 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import ExpenseForm from './ExpenseForm';
 
 const WelcomePage = () => {
   const navigate = useNavigate();
@@ -91,6 +92,7 @@ const WelcomePage = () => {
         </div>
       </nav>
       {error && <p className="error">{error}</p>}
+       <ExpenseForm />
     </div>
   );
 };
