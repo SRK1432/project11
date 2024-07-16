@@ -1,17 +1,20 @@
-
+// src/components/Pages/WelcomePage.js
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useDispatch, useSelector } from 'react-redux';
+import { authActions } from '../../store/authSlice';
 import ExpenseForm from './ExpenseForm';
 
 const WelcomePage = () => {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
+  const token = useSelector((state) => state.auth.token);
   const [emailVerified, setEmailVerified] = useState(true);
   const [verificationSent, setVerificationSent] = useState(false);
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    const idToken = localStorage.getItem('idToken');
-    if (!idToken) {
+    if (!token) {
       navigate('/login');
       return;
     }
@@ -23,7 +26,7 @@ const WelcomePage = () => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        idToken: idToken,
+        idToken: token,
       }),
     })
       .then((response) => response.json())
@@ -35,12 +38,11 @@ const WelcomePage = () => {
       .catch((error) => {
         setError('Failed to fetch user data');
       });
-  }, [navigate]);
+  }, [navigate, token]);
 
   const sendVerificationEmail = () => {
     setError(null);
-    const idToken = localStorage.getItem('idToken');
-    if (!idToken) {
+    if (!token) {
       navigate('/login');
       return;
     }
@@ -52,7 +54,7 @@ const WelcomePage = () => {
       },
       body: JSON.stringify({
         requestType: 'VERIFY_EMAIL',
-        idToken: idToken,
+        idToken: token,
       }),
     })
       .then((response) => {
@@ -71,8 +73,9 @@ const WelcomePage = () => {
         setError(error.message);
       });
   };
+
   const logoutHandler = () => {
-    localStorage.removeItem('idToken');
+    dispatch(authActions.logout());
     navigate('/login');
   };
 
@@ -92,7 +95,7 @@ const WelcomePage = () => {
         </div>
       </nav>
       {error && <p className="error">{error}</p>}
-       <ExpenseForm />
+      <ExpenseForm />
     </div>
   );
 };

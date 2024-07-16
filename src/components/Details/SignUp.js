@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useDispatch } from 'react-redux';
+import {authActions} from '../../store/authSlice';
 import './SignUp.css';
 
 const SignUp = () => {
@@ -8,6 +10,7 @@ const SignUp = () => {
   const [confPassword, setConfPassword] = useState('');
   const [user, setUser] = useState([]);
   const navigate = useNavigate();
+  const dispatch = useDispatch();
 
   const submitHandler = (event) => {
     event.preventDefault();
@@ -27,7 +30,8 @@ const SignUp = () => {
       })
         .then((response) => response.json())
         .then((data) => {
-          setUser((prevUser) => [...prevUser, user]);
+          // setUser((prevUser) => [...prevUser, user]);
+          dispatch(authActions.login({ token: data.idToken, userId: data.localId }));
           navigate('/login');
         })
         .catch((error) => {

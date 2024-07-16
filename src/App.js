@@ -6,7 +6,9 @@ import WelcomePage from './components/Pages/WelcomePage';
 import ProfilePage from './components/Pages/ProfilePage';
 import ForgotPassword from './components/Pages/ForgotPassword';
 
+
 function App() {
+
   return (
     <Router>
       <Routes>
@@ -17,6 +19,7 @@ function App() {
         <Route path="/forgot-password" element={<ForgotPassword />} />
       </Routes>
     </Router>
+
   );
 }
 

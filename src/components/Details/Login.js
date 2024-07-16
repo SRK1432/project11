@@ -1,14 +1,15 @@
-// Login.js
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useDispatch } from 'react-redux';
+import { authActions } from '../../store/authSlice';
 
 const Login = () => {
+  const dispatch = useDispatch();
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [emailVerified, setEmailVerified] = useState(true);
 
   const loginSubmitHandler = (event) => {
     event.preventDefault();
@@ -40,8 +41,7 @@ const Login = () => {
       })
       .then((data) => {
         console.log('Logged in successfully:', data);
-        localStorage.setItem('idToken', data.idToken);
-        setEmailVerified(data.emailVerified);
+        dispatch(authActions.login({ token: data.idToken, userId: data.localId }));
         setLoading(false);
         navigate('/welcome');
       })
@@ -54,15 +54,14 @@ const Login = () => {
   return (
     <form onSubmit={loginSubmitHandler}>
       <label htmlFor="email">Email:</label>
-      <input type="email" id="email" value={email} onChange={(e) => setEmail(e.target.value)} />
+      <input type="email" id="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
       <label htmlFor="password">Password:</label>
-      <input type="password" id="password" value={password} onChange={(e) => setPassword(e.target.value)} />
+      <input type="password" id="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
       {error && <p className="error">{error}</p>}
       <button type="submit" disabled={loading}>
         {loading ? 'Logging in...' : 'Login'}
       </button>
       <button type="button" onClick={() => navigate('/forgot-password')}>Forgot Password</button>
-
     </form>
   );
 };

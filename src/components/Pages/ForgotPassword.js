@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
@@ -17,9 +16,7 @@ const ForgotPassword = () => {
 
     fetch('https://identitytoolkit.googleapis.com/v1/accounts:sendOobCode?key=AIzaSyBWzmP1mDV0IYFqZ9kSV67TmRB3RoqdMgE', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         requestType: 'PASSWORD_RESET',
         email: email,
@@ -28,11 +25,7 @@ const ForgotPassword = () => {
       .then((response) => {
         if (!response.ok) {
           return response.json().then((data) => {
-            let errorMessage = 'Password reset failed!';
-            if (data && data.error && data.error.message) {
-              errorMessage = data.error.message;
-            }
-            throw new Error(errorMessage);
+            throw new Error(data.error.message || 'Password reset failed!');
           });
         }
         setMessage('A password reset email has been sent to your email address. Please check your inbox.');
@@ -50,12 +43,7 @@ const ForgotPassword = () => {
       {error && <p className="error">{error}</p>}
       {message && <p className="message">{message}</p>}
       <label htmlFor="email">Email:</label>
-      <input
-        type="email"
-        id="email"
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-      />
+      <input type="email" id="email" value={email} onChange={(e) => setEmail(e.target.value)} />
       <button type="submit" disabled={loading}>
         {loading ? 'Sending...' : 'Send Reset Link'}
       </button>

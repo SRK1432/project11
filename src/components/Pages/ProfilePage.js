@@ -1,18 +1,22 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useSelector, useDispatch } from 'react-redux';
+import { profileActions } from '../../store/profileSlice';
 import './ProfilePage.css';
 
 const ProfilePage = () => {
   const navigate = useNavigate();
-  const [fullname, setFullname] = useState('');
-  const [profileURL, setProfileURL] = useState('');
+  const dispatch = useDispatch();
+  const { fullname, profileURL } = useSelector((state) => state.profile);
+  const token = useSelector((state) => state.auth.token);
+  const [localFullname, setLocalFullname] = useState(fullname);
+  const [localProfileURL, setLocalProfileURL] = useState(profileURL);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     const fetchProfileData = async () => {
-      const idToken = localStorage.getItem('idToken');
-      if (!idToken) {
+      if (!token) {
         navigate('/login');
         return;
       }
@@ -20,27 +24,21 @@ const ProfilePage = () => {
       try {
         const response = await fetch(`https://identitytoolkit.googleapis.com/v1/accounts:lookup?key=AIzaSyBWzmP1mDV0IYFqZ9kSV67TmRB3RoqdMgE`, {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            idToken: idToken,
-          }),
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ idToken: token }),
         });
 
         if (!response.ok) {
           const data = await response.json();
-          let errorMessage = 'Failed to fetch profile data!';
-          if (data && data.error && data.error.message) {
-            errorMessage = data.error.message;
-          }
-          throw new Error(errorMessage);
+          throw new Error(data.error.message || 'Failed to fetch profile data!');
         }
 
         const data = await response.json();
         if (data.users.length > 0) {
-          setFullname(data.users[0].displayName || '');
-          setProfileURL(data.users[0].photoUrl || '');
+          dispatch(profileActions.setProfile({
+            fullname: data.users[0].displayName || '',
+            profileURL: data.users[0].photoUrl || '',
+          }));
         }
       } catch (error) {
         setError(error.message);
@@ -48,65 +46,44 @@ const ProfilePage = () => {
     };
 
     fetchProfileData();
-  }, [navigate]);
+  }, [token, navigate, dispatch]);
 
   const updateProfileHandler = async (event) => {
     event.preventDefault();
     setError(null);
     setLoading(true);
 
-    const idToken = localStorage.getItem('idToken');
-
     try {
-      // Update profile in Firebase Authentication
-      const authResponse = await fetch(`https://identitytoolkit.googleapis.com/v1/accounts:update?key=AIzaSyBWzmP1mDV0IYFqZ9kSV67TmRB3RoqdMgE`, {
+      const response = await fetch(`https://identitytoolkit.googleapis.com/v1/accounts:update?key=AIzaSyBWzmP1mDV0IYFqZ9kSV67TmRB3RoqdMgE`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          idToken: idToken,
-          displayName: fullname,
-          photoUrl: profileURL,
+          idToken: token,
+          displayName: localFullname,
+          photoUrl: localProfileURL,
           returnSecureToken: true,
         }),
       });
 
-      if (!authResponse.ok) {
-        const data = await authResponse.json();
-        let errorMessage = 'Profile update failed!';
-        if (data && data.error && data.error.message) {
-          errorMessage = data.error.message;
-        }
-        throw new Error(errorMessage);
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error.message || 'Profile update failed!');
       }
 
-      const authData = await authResponse.json();
-      console.log('Profile updated in Firebase Authentication', authData);
+      dispatch(profileActions.updateProfile({
+        fullname: localFullname,
+        profileURL: localProfileURL,
+      }));
 
-      // Save profile data in Firebase Realtime Database
-      const dbResponse = await fetch(`https://expense-tracker-1c231-default-rtdb.firebaseio.com/users/${authData.localId}.json?auth=${idToken}`, {
+      const authData = await response.json();
+      await fetch(`https://expense-tracker-1c231-default-rtdb.firebaseio.com/users/${authData.localId}.json?auth=${token}`, {
         method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          fullname: fullname,
-          profileURL: profileURL,
+          fullname: localFullname,
+          profileURL: localProfileURL,
         }),
       });
-
-      if (!dbResponse.ok) {
-        const data = await dbResponse.json();
-        let errorMessage = 'Saving profile data failed!';
-        if (data && data.error && data.error.message) {
-          errorMessage = data.error.message;
-        }
-        throw new Error(errorMessage);
-      }
-
-      const dbData = await dbResponse.json();
-      console.log('Profile data saved in Firebase Realtime Database', dbData);
 
       setLoading(false);
       navigate('/welcome');
@@ -119,9 +96,9 @@ const ProfilePage = () => {
   return (
     <>
       <nav className="navbar">
-        <div className="left">Winners never quit,Quitters never win..</div>
+        <div className="left">Winners never quit, Quitters never win..</div>
         <div className="right">
-          <p>Your profile is 64% completed. A complete profile</p> 
+          <p>Your profile is 64% completed. A complete profile</p>
           <p> has higher chances of landing a job <a href="##">complete now</a></p>
         </div>
       </nav>
@@ -129,13 +106,13 @@ const ProfilePage = () => {
       <form className="profile-form" onSubmit={updateProfileHandler}>
         {error && <p className="error">{error}</p>}
         <label htmlFor="contact">Full Name:</label>
-        <input type="text" id="contact" value={fullname} onChange={(e) => setFullname(e.target.value)}/>
-        <label htmlFor="photo">Profile photo URL</label>
-        <input type="text" id="url" value={profileURL} onChange={(e) => setProfileURL(e.target.value)}/>
+        <input type="text" id="contact" value={localFullname} onChange={(e) => setLocalFullname(e.target.value)} />
+        <label htmlFor="photo">Profile photo URL:</label>
+        <input type="text" id="url" value={localProfileURL} onChange={(e) => setLocalProfileURL(e.target.value)} />
         <button type="submit" disabled={loading}>
           {loading ? 'Updating...' : 'Update'}
         </button>
-        <button type="button">cancel</button>
+        <button type="button" onClick={() => navigate('/welcome')}>Cancel</button>
       </form>
     </>
   );
