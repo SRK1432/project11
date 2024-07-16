@@ -1,6 +1,9 @@
+// components/ExpenseForm.js
+
 import React, { useEffect, useState } from "react";
 import { useSelector, useDispatch } from 'react-redux';
 import { expenseActions } from '../../store/expensesSlice';
+import { themeActions } from '../../store/themeSlice'; // Import theme actions
 import './ExpenseForm.css';
 
 const ExpenseForm = () => {
@@ -12,6 +15,7 @@ const ExpenseForm = () => {
   const dispatch = useDispatch();
   const expenses = useSelector((state) => state.expenses.expenses);
   const token = useSelector((state) => state.auth.token);
+  const totalExpenses = expenses.reduce((sum, expense) => sum + parseFloat(expense.amount), 0);
 
   useEffect(() => {
     const fetchExpenses = async () => {
@@ -37,6 +41,12 @@ const ExpenseForm = () => {
     };
     fetchExpenses();
   }, [dispatch, token]);
+
+  useEffect(() => {
+    if (totalExpenses > 10000) {
+      dispatch(themeActions.toggleTheme());
+    }
+  }, [totalExpenses, dispatch]);
 
   const submitHandler = async (event) => {
     event.preventDefault();
@@ -104,6 +114,19 @@ const ExpenseForm = () => {
     setEditingExpense(expense);
   };
 
+  const downloadCSV = () => {
+    const csvContent = "data:text/csv;charset=utf-8," +
+      "Amount,Description,Category\n" +
+      expenses.map(expense => `${expense.amount},${expense.description},${expense.category}`).join("\n");
+
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", "expenses.csv");
+    document.body.appendChild(link); // Required for Firefox
+    link.click();
+  };
+
   return (
     <>
       <form className="expense-form" onSubmit={submitHandler}>
@@ -131,6 +154,8 @@ const ExpenseForm = () => {
           </li>
         ))}
       </ul>
+
+      <button onClick={downloadCSV}>Download File</button>
     </>
   );
 };
