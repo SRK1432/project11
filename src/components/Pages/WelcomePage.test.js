@@ -13,7 +13,6 @@ describe('WelcomePage component', () => {
         </MemoryRouter>
       </Provider>
     );
-
     expect(screen.getByText(/Welcome to Expense Tracker!!!/i)).toBeInTheDocument();
   });
 
