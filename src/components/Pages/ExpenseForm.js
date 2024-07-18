@@ -1,9 +1,8 @@
 
-
 import React, { useEffect, useState } from "react";
 import { useSelector, useDispatch } from 'react-redux';
 import { expenseActions } from '../../store/expensesSlice';
-import { themeActions } from '../../store/themeSlice'; // Import theme actions
+import { themeActions } from '../../store/themeSlice'; 
 import './ExpenseForm.css';
 
 const ExpenseForm = () => {

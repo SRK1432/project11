@@ -1,0 +1,22 @@
+'Log files:
+C:\Users\hp\Desktop\React\project11\C\_logs\2024-07-18T10_23_20_231Z-debug-0.log
+
+# npm resolution error report
+
+While resolving: project11@0.1.0
+Found: @testing-library/jest-dom@5.17.0
+node_modules/@testing-library/jest-dom
+  dev @testing-library/jest-dom@"*" from the root project
+
+Could not resolve dependency:
+dev @testing-library/jest-dom@"*" from the root project
+
+Conflicting peer dependency: jest@29.7.0
+node_modules/jest
+  peerOptional jest@">= 28" from @testing-library/jest-dom@6.4.6
+  node_modules/@testing-library/jest-dom
+    dev @testing-library/jest-dom@"*" from the root project
+
+Fix the upstream dependency conflict, or retry
+this command with --force or --legacy-peer-deps
+to accept an incorrect (and potentially broken) dependency resolution.
