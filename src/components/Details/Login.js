@@ -12,7 +12,6 @@ const Login = () => {
 
   
   const [loading, setLoading] = useState(false);
-
   const loginSubmitHandler = (event) => {
     event.preventDefault();
     setError(null);
